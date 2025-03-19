@@ -14,7 +14,7 @@ langchain-groq
 pyaudio 
 coqui-tts
 gtts 
-playsound 
+# playsound 
 pydub 
 openai-whisper 
 wave 
