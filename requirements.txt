@@ -22,4 +22,7 @@ wave
 langchain-core 
 sounddevice 
 soundfile 
-librosa
+librosa 
+streamlit-mic-recorder 
+ffmpeg
+SpeechRecognition
