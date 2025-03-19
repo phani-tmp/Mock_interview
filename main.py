@@ -304,7 +304,8 @@ import librosa
 from TTS.api import TTS  # Import coqui-tts
 from pydub import AudioSegment
 from pydub.playback import play
-import numpy as np
+import numpy as np 
+import tempfile
 import threading
 # Initialize coqui-tts model
 coqui_tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC")
@@ -369,92 +370,6 @@ def evaluate_response(question, user_response):
     return feedback
 
 
-# def record_audio(filename, duration=60, sample_rate=16000):
-#     st.write("Recording... Click 'Stop Recording' to finish early.")
-    
-#     # Check if the directory exists, if not, create it
-#     audio_dir = './audio'  # You can change this to any directory path you like
-#     if not os.path.exists(audio_dir):
-#         os.makedirs(audio_dir)  # Creates the directory if it doesn't exist
-
-#     file_path = os.path.join(audio_dir, filename)  # Full path to save the file
-    
-#     # Record audio
-#     audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype="float32")
-#     start_time = time.time()
-    
-#     stop_recording = False
-#     stop_button = st.button("Stop Recording")
-    
-#     with st.empty():
-#         for i in range(duration, 0, -1):
-#             if stop_recording:
-#                 st.write("Recording stopped.")
-#                 break
-#             st.write(f"Time remaining: {i} seconds")
-#             time.sleep(1)
-            
-#             # Check if the stop button is pressed
-#             if stop_button:
-#                 sd.stop()
-#                 stop_recording = True
-#                 break
-
-#     # Stop the recording if manually stopped or after the duration
-#     sd.stop()
-
-#     # Save the recorded audio to the file
-#     sf.write(file_path, audio, sample_rate)  # Save audio to the specified path
-#     st.write(f"Recording complete. File saved to {file_path}.")
-#     return file_path  # Return the path to the recorded file
-
-# AUDIO_DIR = "./audio"
-# os.makedirs(AUDIO_DIR, exist_ok=True)
-
-
-# def record_audio(filename="recorded_audio.wav", max_duration=10, sample_rate=16000):
-#     """Records audio and saves it to a file using session state management."""
-#     if "recording_data" not in st.session_state:
-#         st.session_state["recording_data"] = []  # Initialize recording data
-#     file_path = os.path.join(AUDIO_DIR, filename)
-
-#     def callback(indata, frames, time, status):
-#         if status:
-#             st.warning(f"Audio stream error: {status}")
-#         st.session_state["recording_data"].append(indata.copy())
-
-#     try:
-#         # Start recording
-#         with sd.InputStream(samplerate=sample_rate, channels=1, dtype="float32", callback=callback):
-#             start_time = time.time()
-#             st.session_state["stop_recording"] = False
-
-#             with st.empty():
-#                 while time.time() - start_time < max_duration:
-#                     elapsed_time = time.time() - start_time
-#                     remaining_time = max_duration - int(elapsed_time)
-
-#                     # Display the timer
-#                     st.write(f"⏳ Time remaining: {remaining_time} seconds")
-
-#                     # Check if the stop button is clicked
-#                     if st.session_state.get("stop_recording", False):
-#                         break
-
-#                     time.sleep(0.1)  # Small delay to avoid busy-waiting
-
-#     except Exception as e:
-#         st.error(f"Error during recording: {e}")
-#         return None
-
-#     # Save the recorded audio
-#     if st.session_state["recording_data"]:
-#         recorded_data = np.concatenate(st.session_state["recording_data"], axis=0)
-#         sf.write(file_path, recorded_data, sample_rate)
-#         st.session_state["recording_data"] = []  # Clear recording data
-#         return file_path
-#     return None
-
 
 def transcribe_audio(file_path):
     # Load Whisper model
@@ -472,23 +387,7 @@ def transcribe_audio(file_path):
         st.write(f"Error during transcription: {str(e)}")
         return None  # Return None if there is an error
 
-# def speech_to_text():
-#     try:
-#         # Record and save the audio
-#         audio_file = record_audio("recorded_audio.wav")  # Record audio and return file path
 
-#         # Normalize the file path to ensure consistency across platforms
-#         audio_file = os.path.abspath(audio_file)  # Get absolute path
-
-#         # Check if the audio file exists
-#         if not os.path.exists(audio_file):
-#             return f"Error: The audio file {audio_file} does not exist."
-
-#         # Transcribe audio using Whisper
-#         transcription = transcribe_audio(audio_file)  # Use the transcribe_audio function
-#         return transcription
-#     except Exception as e:
-#         return f"Error: {str(e)}"
 def speech_to_text():
     try:
         # Start the recording
@@ -520,57 +419,7 @@ def play_question(question):
     audio = AudioSegment.from_wav("question.wav")
     play(audio)
 
-# Streamlit App for the Second Page
-# def main():
-#     # Retrieve data from the first page
-#     if "resume_text" not in st.session_state or "job_description" not in st.session_state:
-#         st.error("Please go back to the first page and fill out the form.")
-#         return
 
-#     resume_text = st.session_state.resume_text
-#     job_description = st.session_state.job_description
-
-#     # Generate interview questions
-#     if "questions" not in st.session_state:
-#         st.session_state.questions = generate_interview_questions(job_description, resume_text)
-#         st.session_state.current_question_index = 0
-#         st.session_state.user_response = None
-#         st.session_state.feedback = None
-
-#     # Display the current question
-#     current_question = st.session_state.questions[st.session_state.current_question_index]
-#     st.write(f"**Question {st.session_state.current_question_index + 1}:** {current_question}")
-
-#     # Initialize session state for recording control
-#     if "stop_recording" not in st.session_state:
-#         st.session_state.stop_recording = False
-#     if "recording_in_progress" not in st.session_state:
-#         st.session_state.recording_in_progress = False
-#     if st.button("Play Question"):
-#         play_question(current_question)
-#     # Start recording when "Record Response" is clicked
-#     if st.button("Record Response") and not st.session_state.recording_in_progress:
-#         st.session_state.recording_in_progress = True
-#         st.session_state.stop_recording = False
-#         st.session_state.user_response = speech_to_text()
-#         st.session_state.recording_in_progress = False
-#         st.write(f"**Your Response:** {st.session_state.user_response}")
-
-#     # Evaluate the response
-#     if st.session_state.user_response and st.session_state.user_response != "Error":
-#         if st.button("Get Feedback"):
-#             st.session_state.feedback = evaluate_response(current_question, st.session_state.user_response)
-#             st.write(f"**Feedback:** {st.session_state.feedback}")
-
-#     # Move to the next question
-#     if st.button("Next Question"):
-#         if st.session_state.current_question_index < len(st.session_state.questions) - 1:
-#             st.session_state.current_question_index += 1
-#             st.session_state.user_response = None
-#             st.session_state.feedback = None
-#             st.rerun()
-#         else:
-#             st.success("Interview completed! Great job!")
 
 recording = []
 is_recording = False
@@ -594,8 +443,23 @@ def start_recording():
     st.session_state['is_recording'] = True
     st.write("🎙️ Recording... Click '🛑 Stop Recording' to stop.")
 
+# def stop_recording():
+#     """Stops recording and saves the audio file."""
+#     global is_recording, stream, recording
+#     is_recording = False
+#     if stream:
+#         stream.stop()
+#         stream.close()
+    
+#     if recording:
+#         audio_data = np.concatenate(recording, axis=0)
+#         audio_dir = "./audio"
+#         os.makedirs(audio_dir, exist_ok=True)  # Ensure directory exists
+#         filename = os.path.join(audio_dir, "user_response.wav")
+#         sf.write(filename, audio_data, 16000)  # Save the audio file
+#         st.session_state['audio_file'] = filename
+#         st.success(f"✅ Recording saved: {filename}")
 def stop_recording():
-    """Stops recording and saves the audio file."""
     global is_recording, stream, recording
     is_recording = False
     if stream:
@@ -604,78 +468,14 @@ def stop_recording():
     
     if recording:
         audio_data = np.concatenate(recording, axis=0)
-        audio_dir = "./audio"
-        os.makedirs(audio_dir, exist_ok=True)  # Ensure directory exists
-        filename = os.path.join(audio_dir, "user_response.wav")
-        sf.write(filename, audio_data, 16000)  # Save the audio file
-        st.session_state['audio_file'] = filename
-        st.success(f"✅ Recording saved: {filename}")
+        
+        # Save audio in a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            filename = temp_file.name
+            sf.write(filename, audio_data, 16000)
+            st.session_state['audio_file'] = filename
+            st.success(f"✅ Recording saved: {filename}")
 
-# def main():
-#     st.title("🎤 AI-Powered Interview Practice")
-
-#     # Ensure session state variables exist
-#     if "resume_text" not in st.session_state or "job_description" not in st.session_state:
-#         st.error("⚠️ Please go back and fill out the form first.")
-#         return
-
-#     resume_text = st.session_state.resume_text
-#     job_description = st.session_state.job_description
-
-#     # Generate interview questions if not already present
-#     if "questions" not in st.session_state:
-#         st.session_state.questions = generate_interview_questions(job_description, resume_text)
-#         st.session_state.current_question_index = 0
-#         st.session_state.user_response = None
-#         st.session_state.feedback = None
-
-#     # Display current question
-#     current_question = st.session_state.questions[st.session_state.current_question_index]
-#     st.write(f"**📝 Question {st.session_state.current_question_index + 1}:** {current_question}")
-
-#     # Ensure session state tracking for recording
-#     if "is_recording" not in st.session_state:
-#         st.session_state.is_recording = False
-#     if "audio_file" not in st.session_state:
-#         st.session_state.audio_file = None
-
-#     # Play Question
-#     if st.button("🔊 Play Question"):
-#         play_question(current_question)
-
-#     # Record Button
-#     if not st.session_state.is_recording:
-#         if st.button("🎙️ Start Recording"):
-#             start_recording()
-
-#     # Stop Recording Button
-#     if st.session_state.is_recording:
-#         if st.button("🛑 Stop Recording"):
-#             stop_recording()
-
-#     # Display saved audio file if available
-#     if st.session_state.audio_file:
-#         st.audio(st.session_state.audio_file, format="audio/wav")
-
-#     # Evaluate Response
-#     if st.session_state.audio_file:
-#         if st.button("📝 Get Feedback"):
-#             st.session_state.user_response = speech_to_text()
-#             if st.session_state.user_response != "Error":
-#                 st.session_state.feedback = evaluate_response(current_question, st.session_state.user_response)
-#                 st.write(f"**Your Response:** {st.session_state.user_response}")
-#                 st.write(f"**Feedback:** {st.session_state.feedback}")
-
-#     # Next Question Button
-#     if st.button("➡️ Next Question"):
-#         if st.session_state.current_question_index < len(st.session_state.questions) - 1:
-#             st.session_state.current_question_index += 1
-#             st.session_state.user_response = None
-#             st.session_state.feedback = None
-#             st.session_state.audio_file = None
-#             st.rerun()
-#         else:
-#             st.success("✅ Interview Completed! Great Job! 🎉")
 def main():
     st.title("🎤 AI-Powered Interview Practice")
 
@@ -744,65 +544,6 @@ def main():
 
         else:
             st.success("✅ Interview Completed! Great Job! 🎉")
-
-# def main():
-#     """Streamlit UI for the interview practice tool."""
-#     # Initialize session state keys if they don't exist
-#     if "stop_recording" not in st.session_state:
-#         st.session_state["stop_recording"] = False
-#     if "recording_data" not in st.session_state:
-#         st.session_state["recording_data"] = []
-#     if "recording_in_progress" not in st.session_state:
-#         st.session_state["recording_in_progress"] = False
-
-#     if "resume_text" not in st.session_state or "job_description" not in st.session_state:
-#         st.error("Go back to the first page and complete the form.")
-#         return
-
-#     resume_text = st.session_state.resume_text
-#     job_description = st.session_state.job_description
-
-#     if "questions" not in st.session_state:
-#         st.session_state.questions = generate_interview_questions(job_description, resume_text)
-#         st.session_state.current_question_index = 0
-#         st.session_state.user_response = None
-#         st.session_state.feedback = None
-
-#     current_question = st.session_state.questions[st.session_state.current_question_index]
-#     st.write(f"**Question {st.session_state.current_question_index + 1}:** {current_question}")
-
-#     if st.button("▶️ Play Question", key="play_question"):
-#         play_question(current_question)
-
-#     if st.button("🎤 Start Recording", key="start_recording") and not st.session_state.recording_in_progress:
-#         st.session_state.recording_in_progress = True
-#         audio_file = record_audio()
-#         if audio_file:
-#             st.session_state.user_response = speech_to_text()
-#         else:
-#             st.session_state.user_response = "Error: Recording failed."
-#         st.session_state.recording_in_progress = False
-#         st.session_state["stop_recording"] = False  # Reset stop flag
-#         st.write(f"**Your Response:** {st.session_state.user_response}")
-
-#     # Stop button placed separately to avoid duplicate key errors
-#     if st.session_state.recording_in_progress:
-#         if st.button("🛑 Stop Recording", key="stop_recording"):
-#             st.session_state["stop_recording"] = True
-
-#     if st.session_state.user_response and st.session_state.user_response != "Error":
-#         if st.button("💡 Get Feedback", key="get_feedback"):
-#             st.session_state.feedback = evaluate_response(current_question, st.session_state.user_response)
-#             st.write(f"**Feedback:** {st.session_state.feedback}")
-
-#     if st.button("⏭️ Next Question", key="next_question"):
-#         if st.session_state.current_question_index < len(st.session_state.questions) - 1:
-#             st.session_state.current_question_index += 1
-#             st.session_state.user_response = None
-#             st.session_state.feedback = None
-#             st.rerun()
-#         else:
-#             st.success("🎉 Interview completed! Great job!")
 
 
 if __name__ == "__main__":
