@@ -11,9 +11,9 @@ streamlit
 langchain 
 speechrecognition 
 langchain-groq 
-pyaudio 
+# pyaudio 
 coqui-tts
-gtts 
+# gtts 
 # playsound 
 pydub 
 openai-whisper 
