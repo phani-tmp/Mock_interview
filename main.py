@@ -625,7 +625,7 @@ def main():
         st.session_state.is_playing = False  # Reset after playing
 
     # Start and stop recording using st.audio_input()
-    audio_file = st.audio_input("Record your response")
+    audio_file = st.audio_input("Record your response", key=f"audio_input_{st.session_state.current_question_index}")
 
     if audio_file and not st.session_state.is_playing:  # Ensure recording doesn't happen while playing
         # Use a temporary file for storing the recorded audio
@@ -653,14 +653,13 @@ def main():
         if st.session_state.user_response != "Error":
             st.write(f"**Your Response:** {st.session_state.user_response}")
 
-        # Evaluate Response
-        if st.session_state.audio_file:
-            if st.button("📝 Get Feedback"):
-                
-                if st.session_state.user_response != "Error":
-                    st.session_state.feedback = evaluate_response(current_question, st.session_state.user_response)
-                    st.write(f"**Your Response:** {st.session_state.user_response}")
-                    st.write(f"**Feedback:** {st.session_state.feedback}")
+    # Evaluate Response
+    if st.session_state.audio_file:
+        if st.button("📝 Get Feedback"):
+            if st.session_state.user_response != "Error":
+                st.session_state.feedback = evaluate_response(current_question, st.session_state.user_response)
+                st.write(f"**Your Response:** {st.session_state.user_response}")
+                st.write(f"**Feedback:** {st.session_state.feedback}")
 
     # Next Question Button
     if st.button("➡️ Next Question"):
@@ -670,7 +669,7 @@ def main():
             st.session_state.feedback = None
             st.session_state.audio_file = None
             st.session_state.is_recording = False  # Reset the recording state
-            st.rerun()  # Rerun to clear the Stop Recording button
+            st.rerun()  # Rerun to clear the UI
         else:
             st.success("✅ Interview Completed! Great Job! 🎉")
 if __name__ == "__main__":
