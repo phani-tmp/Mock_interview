@@ -12,6 +12,7 @@ langchain
 speechrecognition 
 langchain-groq 
 # pyaudio 
+
 coqui-tts
 # gtts 
 # playsound 
@@ -19,6 +20,6 @@ pydub
 openai-whisper 
 wave 
 langchain-core 
-sounddevice 
+# sounddevice 
 soundfile 
 librosa
