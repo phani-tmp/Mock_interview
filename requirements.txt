@@ -20,6 +20,6 @@ pydub
 openai-whisper 
 wave 
 langchain-core 
-# sounddevice 
+sounddevice 
 soundfile 
 librosa

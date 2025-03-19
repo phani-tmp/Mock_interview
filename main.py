@@ -286,6 +286,39 @@
 
 # if __name__ == "__main__":
 #     main() 
+# def callback(indata, frames, time, status):
+#     """Callback function to continuously capture audio in chunks."""
+#     global recording, is_recording
+#     if status:
+#         print(status)
+#     if is_recording:
+#         recording.append(indata.copy())
+
+# def start_recording():
+#     """Starts recording audio using a callback."""
+#     global recording, is_recording, stream
+#     recording = []
+#     is_recording = True
+#     stream = sd.InputStream(samplerate=16000, channels=1, callback=callback, dtype='float32')
+#     stream.start()
+#     st.session_state['is_recording'] = True
+#     st.write("🎙️ Recording... Click '🛑 Stop Recording' to stop.")
+# def stop_recording():
+#     """Stops recording and saves the audio file."""
+#     global is_recording, stream, recording
+#     is_recording = False
+#     if stream:
+#         stream.stop()
+#         stream.close()
+    
+#     if recording:
+#         audio_data = np.concatenate(recording, axis=0)
+#         audio_dir = "./audio"
+#         os.makedirs(audio_dir, exist_ok=True)  # Ensure directory exists
+#         filename = os.path.join(audio_dir, "user_response.wav")
+#         sf.write(filename, audio_data, 16000)  # Save the audio file
+#         st.session_state['audio_file'] = filename
+#         st.success(f"✅ Recording saved: {filename}")
 import os
 os.environ["STREAMLIT_SERVER_ENABLE_FILE_WATCHER"] = "false"  # Disable Streamlit file watcher
 
@@ -294,7 +327,7 @@ warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using F
 
 import streamlit as st
 import whisper
-# import sounddevice as sd
+import sounddevice as sd
 import soundfile as sf
 import time
 from langchain_core.runnables import RunnableSequence
@@ -424,68 +457,25 @@ def play_question(question):
 recording = []
 is_recording = False
 stream = None
-
-# def callback(indata, frames, time, status):
-#     """Callback function to continuously capture audio in chunks."""
-#     global recording, is_recording
-#     if status:
-#         print(status)
-#     if is_recording:
-#         recording.append(indata.copy())
-
-# def start_recording():
-#     """Starts recording audio using a callback."""
-#     global recording, is_recording, stream
-#     recording = []
-#     is_recording = True
-#     stream = sd.InputStream(samplerate=16000, channels=1, callback=callback, dtype='float32')
-#     stream.start()
-#     st.session_state['is_recording'] = True
-#     st.write("🎙️ Recording... Click '🛑 Stop Recording' to stop.")
 def callback(indata, frames, time, status):
-    """Callback function to process audio data."""
+    """Callback function to continuously capture audio in chunks."""
     global recording, is_recording
     if status:
         print(status)
     if is_recording:
-        # Instead of appending chunks from `sounddevice`, store the data to be processed
         recording.append(indata.copy())
 
 def start_recording():
-    """Starts recording audio using librosa."""
-    global recording, is_recording
+    """Starts recording audio using a callback."""
+    global recording, is_recording, stream
     recording = []
     is_recording = True
-    
-    # Example: Load a file and simulate chunk processing
-    audio_file = 'path_to_your_audio_file.wav'  # Replace with the actual audio file path
-    audio_data, sr = librosa.load(audio_file, sr=16000)  # Load audio at 16000Hz sample rate
-    
-    # Simulate chunk processing (use chunks similar to how `sounddevice` works)
-    chunk_size = 1024
-    for i in range(0, len(audio_data), chunk_size):
-        chunk = audio_data[i:i + chunk_size]
-        callback(chunk, len(chunk), None, None)  # Simulate calling the callback function
-
+    stream = sd.InputStream(samplerate=16000, channels=1, callback=callback, dtype='float32')
+    stream.start()
     st.session_state['is_recording'] = True
-    st.write("🎙️ Processing recorded audio...")
-# def stop_recording():
-#     """Stops recording and saves the audio file."""
-#     global is_recording, stream, recording
-#     is_recording = False
-#     if stream:
-#         stream.stop()
-#         stream.close()
-    
-#     if recording:
-#         audio_data = np.concatenate(recording, axis=0)
-#         audio_dir = "./audio"
-#         os.makedirs(audio_dir, exist_ok=True)  # Ensure directory exists
-#         filename = os.path.join(audio_dir, "user_response.wav")
-#         sf.write(filename, audio_data, 16000)  # Save the audio file
-#         st.session_state['audio_file'] = filename
-#         st.success(f"✅ Recording saved: {filename}")
+    st.write("🎙️ Recording... Click '🛑 Stop Recording' to stop.")
 def stop_recording():
+    """Stops recording and saves the audio file."""
     global is_recording, stream, recording
     is_recording = False
     if stream:
@@ -494,13 +484,57 @@ def stop_recording():
     
     if recording:
         audio_data = np.concatenate(recording, axis=0)
+        audio_dir = "./audio"
+        os.makedirs(audio_dir, exist_ok=True)  # Ensure directory exists
+        filename = os.path.join(audio_dir, "user_response.wav")
+        sf.write(filename, audio_data, 16000)  # Save the audio file
+        st.session_state['audio_file'] = filename
+        st.success(f"✅ Recording saved: {filename}")
+
+# def callback(indata, frames, time, status):
+#     """Callback function to process audio data."""
+#     global recording, is_recording
+#     if status:
+#         print(status)
+#     if is_recording:
+#         # Instead of appending chunks from `sounddevice`, store the data to be processed
+#         recording.append(indata.copy())
+
+# def start_recording():
+#     """Starts recording audio using librosa."""
+#     global recording, is_recording
+#     recording = []
+#     is_recording = True
+    
+#     # Example: Load a file and simulate chunk processing
+#     audio_file = 'path_to_your_audio_file.wav'  # Replace with the actual audio file path
+#     audio_data, sr = librosa.load(audio_file, sr=16000)  # Load audio at 16000Hz sample rate
+    
+#     # Simulate chunk processing (use chunks similar to how `sounddevice` works)
+#     chunk_size = 1024
+#     for i in range(0, len(audio_data), chunk_size):
+#         chunk = audio_data[i:i + chunk_size]
+#         callback(chunk, len(chunk), None, None)  # Simulate calling the callback function
+
+#     st.session_state['is_recording'] = True
+#     st.write("🎙️ Processing recorded audio...")
+
+# def stop_recording():
+#     global is_recording, stream, recording
+#     is_recording = False
+#     if stream:
+#         stream.stop()
+#         stream.close()
+    
+#     if recording:
+#         audio_data = np.concatenate(recording, axis=0)
         
-        # Save audio in a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
-            filename = temp_file.name
-            sf.write(filename, audio_data, 16000)
-            st.session_state['audio_file'] = filename
-            st.success(f"✅ Recording saved: {filename}")
+#         # Save audio in a temporary file
+#         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+#             filename = temp_file.name
+#             sf.write(filename, audio_data, 16000)
+#             st.session_state['audio_file'] = filename
+#             st.success(f"✅ Recording saved: {filename}")
 
 def main():
     st.title("🎤 AI-Powered Interview Practice")
@@ -573,4 +607,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main() 
