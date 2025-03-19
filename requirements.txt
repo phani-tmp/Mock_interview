@@ -12,7 +12,7 @@ langchain
 speechrecognition 
 langchain-groq 
 # pyaudio 
-
+simpleaudio
 coqui-tts
 # gtts 
 # playsound 

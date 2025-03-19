@@ -324,12 +324,13 @@ os.environ["STREAMLIT_SERVER_ENABLE_FILE_WATCHER"] = "false"  # Disable Streamli
 
 import warnings
 warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using FP32 instead")  # Suppress FP16 warning
-
+import asyncio
 import streamlit as st
 import whisper
 import sounddevice as sd
 import soundfile as sf
-import time
+import time 
+import pyaudio
 from langchain_core.runnables import RunnableSequence
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
@@ -491,50 +492,7 @@ def stop_recording():
         st.session_state['audio_file'] = filename
         st.success(f"✅ Recording saved: {filename}")
 
-# def callback(indata, frames, time, status):
-#     """Callback function to process audio data."""
-#     global recording, is_recording
-#     if status:
-#         print(status)
-#     if is_recording:
-#         # Instead of appending chunks from `sounddevice`, store the data to be processed
-#         recording.append(indata.copy())
 
-# def start_recording():
-#     """Starts recording audio using librosa."""
-#     global recording, is_recording
-#     recording = []
-#     is_recording = True
-    
-#     # Example: Load a file and simulate chunk processing
-#     audio_file = 'path_to_your_audio_file.wav'  # Replace with the actual audio file path
-#     audio_data, sr = librosa.load(audio_file, sr=16000)  # Load audio at 16000Hz sample rate
-    
-#     # Simulate chunk processing (use chunks similar to how `sounddevice` works)
-#     chunk_size = 1024
-#     for i in range(0, len(audio_data), chunk_size):
-#         chunk = audio_data[i:i + chunk_size]
-#         callback(chunk, len(chunk), None, None)  # Simulate calling the callback function
-
-#     st.session_state['is_recording'] = True
-#     st.write("🎙️ Processing recorded audio...")
-
-# def stop_recording():
-#     global is_recording, stream, recording
-#     is_recording = False
-#     if stream:
-#         stream.stop()
-#         stream.close()
-    
-#     if recording:
-#         audio_data = np.concatenate(recording, axis=0)
-        
-#         # Save audio in a temporary file
-#         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
-#             filename = temp_file.name
-#             sf.write(filename, audio_data, 16000)
-#             st.session_state['audio_file'] = filename
-#             st.success(f"✅ Recording saved: {filename}")
 
 def main():
     st.title("🎤 AI-Powered Interview Practice")
@@ -607,4 +565,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    asyncio.run(main())
