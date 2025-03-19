@@ -330,7 +330,7 @@ import whisper
 import sounddevice as sd
 import soundfile as sf
 import time 
-import pyaudio
+
 from langchain_core.runnables import RunnableSequence
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
